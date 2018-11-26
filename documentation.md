@@ -7,12 +7,12 @@
 - *I used links where appropriate*
 
 # Overview
-
-This application shows hotels in Bratislava on a map. Most important features are:
-- search by proximity to my current location
-- search by hotel name
-- intelligent ordering - by proximity and by hotel features
-- hotels on the map are color coded by their quality assigned in stars (standard)
+Aplikácia ponúka zobrazenie rôznych artefaktov na mape v oblasti Vysokých Tatier. Najdôležitejšie features sú:
+- zobrazenie vybratých miest (požičovňa lyží, bary, lekárne, ...) vzhľadom na aktuálnu pozíciu
+- vybratie si rozsahu hľadania miest na základe počtu m a km od aktuálnej pozície
+- nasimulovanie aktuálnej pozície
+- zobrazenie top najbližšieho ubytovania podľa určeného limitu a aktuálnej pozície
+- zobrazenie cyklotrás spolu s bodmi, ktoré tieto cesty pretínajú
 
 This is it in action:
 
