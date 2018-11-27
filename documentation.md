@@ -11,6 +11,10 @@ Aplikácia ponúka zobrazenie rôznych artefaktov na mape v oblasti Vysokých Ta
 Takto vyzerá aplikácia v chode:
 
 ![Screenshot](screenshot.png)
+![Screenshot](screen.png)
+![Screenshot](screen1.png)
+![Screenshot](screen2.png)
+![Screenshot](screen3.png)
 
 Aplikácia je rozdelená na 2 časti - frontend, ktorý využíva Leaflet na zobrazovanie mapy a backend, ktorý je napísaný v Pythone spolu s frameworkom Flask. 
 
