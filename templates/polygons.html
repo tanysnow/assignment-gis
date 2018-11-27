@@ -150,6 +150,26 @@
     $.post(Flask.url_for('set_position', {position: this.getLatLng()}));
   }
 
+  {% if suradnice %}
+    {% for suradnica in suradnice %}
+      // markerId += 1;
+
+      marker = L.marker([{{ suradnica[0] }}, {{ suradnica[1] }}], {
+        icon: redIcon,
+      }).addTo(map).bindPopup(
+                      "<dl><dt>" + pole[markerCount] + "</dt>"
+                      + "<dd>Lat: " + {{ suradnica[0] }} + "</dd>"
+                      + "<dd>Long: " + {{ suradnica[1] }} + "</dd></dl>"
+                    );
+      marker.addTo(markers);
+
+      draggable = new L.Draggable(marker);
+      draggable.enable();
+
+      markerCount += 1;
+    {% endfor %}
+  {% endif %}
+
 
   </script>
 

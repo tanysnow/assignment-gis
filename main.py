@@ -345,6 +345,108 @@ def lets_go_bicycle():
 	services = find_services(cur)
 	return render_template('index.html', services=services, actual_template=actual_template, all_polyLines=all_polyLines, names=names, suradnice=suradnice, all_points=all_points, distance=distance)
 
+@app.route('/contains', methods=['GET', 'POST'])
+def show_contains():
+	service = ''
+
+	new_distance = ''
+	select = request.form.get('distance_select')
+	print(select)
+	if select is None:
+		select = 1000000
+	else:
+		if(select != 'all'):
+			select = int(select)
+		else:
+			select = 1000000
+
+	actual_position_array = actual_template = set_actual_position()
+
+	if select:
+		new_distance = int(select)
+	else:
+		new_distance = 10
+	cur = conn.cursor()
+	cur.execute('SELECT version()')
+
+	# latlng = "49.1390668, 20.2096027"
+	latlng = ''
+	latlng = str(actual_position_array[0]) + ', ' + str(actual_position_array[1])
+	print(latlng)
+	print(type(select))
+
+	cur.execute("SELECT polygon.name, ST_AsText (ST_Transform (polygon.way, 4326)), points.name, ST_AsText (ST_Transform (points.way, 4326)), " + 
+	"ST_Contains(polygon.way, points.way) " + 
+	"FROM planet_osm_polygon AS polygon INNER JOIN planet_osm_point AS points ON (polygon.amenity = points.amenity) " + 
+	"WHERE ST_Contains(polygon.way, points.way)='true'")
+
+	temp_cur = cur
+	
+	names = []
+	all_polygones = []
+	for row in iter_row(cur, 10):
+		# print(row[2])
+		coordinates = row[1]
+		# distance = str(row[1])
+		name = str(row[0])
+		names.append(name)
+		# print('Udaje: ', distance, name)
+		temp = re.split('\(\(', coordinates)
+		# print(temp)
+		temp1 = re.split('\)\)', temp[1])
+		# print(temp1)
+		temp = re.split(',', temp1[0])
+		# print(temp)
+		polygones = []
+		polygone = []
+		for coordinate in temp:
+			# print(coordinate)
+			coordinate = re.split(' ', coordinate)
+			# print(coordinate)
+			if(coordinate[0][0] == '('):
+				temp_c = re.split('\(', coordinate[0])
+				coordinate[0] = temp_c[1]
+			if(coordinate[1][len(coordinate[1]) - 1] == ')'):
+				temp_c = re.split('\)', coordinate[1])
+				coordinate[1] = temp_c[0]
+			polygone.append(float(coordinate[1]))
+			polygone.append(float(coordinate[0]))
+			polygones.append(polygone)
+			# print(polygones)
+			polygone = []
+		all_polygones.append(polygones)
+		polygones = []
+
+	suradnice = []
+	suradnica = []
+
+	cur.execute("SELECT polygon.name, ST_AsText (ST_Transform (polygon.way, 4326)), points.name, ST_AsText (ST_Transform (points.way, 4326)), " + 
+	"ST_Contains(polygon.way, points.way) " + 
+	"FROM planet_osm_polygon AS polygon INNER JOIN planet_osm_point AS points ON (polygon.amenity = points.amenity) " + 
+	"WHERE ST_Contains(polygon.way, points.way)='true'")
+	
+	for row in iter_row(temp_cur, 10):
+		row = row[3]
+		# print(row)
+		temp = re.split('\(', row)
+		lat = re.split(' ', temp[1])
+		# print(lat[0])
+		long = re.split('\)', lat[1])
+		# print(lat[0])
+		# print(long[0])
+		suradnica.append(float(long[0]))
+		suradnica.append(float(lat[0]))
+		suradnice.append(suradnica)
+		suradnica = []
+
+	services = find_services(cur)
+
+	cur.close()
+	return render_template('polygons.html', services=services, service='parking', new_service='parking', 
+											all_polygones=all_polygones, names=names, actual_position=actual_position_array,
+											actual_template=actual_template, select=select, suradnice=suradnice)
+
+
 if __name__ == '__main__':
    app.run(debug = True)
 
