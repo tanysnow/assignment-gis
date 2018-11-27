@@ -1,0 +1,9 @@
+body {
+  /*background-color: blue;*/
+}
+
+#the-string {
+  display: none;
+}
+
+#mapid { height: 380px; }

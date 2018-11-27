@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link href="{{ url_for('static', filename = 'style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'leaflet.css') }}" rel="stylesheet"/>
+
+    
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename = 'leaflet-routing-machine.css') }}"/>
+
+  <!-- <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script> -->
+    
+
+
+  </head>
+  <body>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-5">
+          <form class="form-inline" method="POST" action="{{ url_for('show_distance') }}" id="distance-form">
+            <div class="form-group">
+              <div class="input-group">
+                <input type="radio" name="distance" value="500" class="radio-button" {% if distance == 500 %} checked="checked" {% endif %}> 500m
+                <input type="radio" name="distance" value="2000" class="radio-button" {% if distance == 2000 %} checked="checked" {% endif %}> 2km
+                <input type="radio" name="distance" value="5000" class="radio-button" {% if distance == 5000 %} checked="checked" {% endif %}> 5km
+                <input type="radio" name="distance" value="10000" class="radio-button" {% if distance == 10000 %} checked="checked" {% endif %}> 10km
+                <input type="submit" name="distance-submit" value="Vyber vzdialenosť" class="button">
+              </div>
+            </div>
+          </form> 
+        </div>
+        <div class="col-md-3">
+          <a href="http://127.0.0.1:5000/polygons">Zobraziť ubytovanie v mojej lokalite</a>
+        </div>
+        <div class="col-md-2">
+          <a href="http://127.0.0.1:5000/lets-go-bicycle">Lets go bicycle</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12 select-section">
+         <form class="form-inline" method="POST" action="{{ url_for('show_distance') }}">
+          <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon">Prosím vyberte</span>
+                <select name="comp_select" class="selectpicker form-control">
+                  {% for service in services %}
+                  <option value="{{ service }}" {% if new_service == service %} selected="selected"{% endif %}>{{ service }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+            <input type="submit" name="service" value="Selektuj" class="button">
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12" data-tap-disabled="true"><div id="map" width="100%" markers="markers" lf-center="center"></div></div>
+  </div>
+
+
+  <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+  <script src="{{ url_for('static', filename = 'leaflet.js') }}"></script>
+  <script src="{{ url_for('static', filename = 'leaflet-routing-machine.js') }}"></script>
+
+  <script>
+    var distance = {{ distance }};
+    $('#distance-form input').on('change', function() {
+      distance = $('input[name=distance]:checked', '#distance-form').val();
+      console.log(distance);
+
+      if(distance == 'none'){
+        distance = 500;
+      }
+    });
+
+    
+
+  // console.log(polyLines)
+
+  var redIcon = L.icon({
+    iconUrl: '../static/marker.png',
+    // shadowUrl: 'leaf-shadow.png',
+
+    iconSize:     [32, 32], // size of the icon
+    // shadowSize:   [50, 64], // size of the shadow
+    // iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+    // shadowAnchor: [4, 62],  // the same for the shadow
+    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+});
+
+  var backPacker = L.icon({
+    iconUrl: '../static/Backpacker.png',
+    iconSize: [32, 64]
+  });
+
+  var map = L.map('map').setView([51.505, -0.09], 11);
+  map.panTo([49.1830607,19.9869453]); //49.1390668,20.2096027
+
+  // L.marker([49.1646923996516, 20.2791366], {
+  //     icon: backPacker,
+  //     draggable: true,
+  //   }).addTo(map).on('click', onClick);
+
+  L.marker({{ actual_template }}, {
+      icon: backPacker,
+      draggable: true,
+    }).addTo(map).on('click', onClick);
+
+  // latlng = this.getLatLng()
+    L.circle({{ actual_template }}, 
+      distance
+    ).addTo(map);
+
+  var all_polyLines = {{ all_polyLines }}
+
+  for(var j = 0; j < all_polyLines.length; j++){
+    L.polyline(all_polyLines[j], {color: 'red'}).addTo(map);
+  }
+
+      // create a red polyline from an array of LatLng points
+  // var polyline = L.polyline(polyLines, {color: 'red'}).addTo(map);
+
+  // zoom the map to the polyline
+  // map.fitBounds(polyline.getBounds());
+
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  var markerCount = 0;
+  var markers = L.layerGroup([]);
+  var draggable = new L.Draggable();
+
+  pole = {{ names | safe}}
+
+  {% for suradnica in suradnice %}
+    // markerId += 1;
+
+    marker = L.marker([{{ suradnica[0] }}, {{ suradnica[1] }}], {
+      icon: redIcon,
+    }).addTo(map).bindPopup(
+                    "<dl><dt>" + pole[markerCount] + "</dt>"
+                    + "<dd>Lat: " + {{ suradnica[0] }} + "</dd>"
+                    + "<dd>Long: " + {{ suradnica[1] }} + "</dd></dl>"
+                  );
+    marker.addTo(markers);
+
+    draggable = new L.Draggable(marker);
+    draggable.enable();
+
+    markerCount += 1;
+  {% endfor %}
+
+  var all_points = {{ all_points }}
+  {% for all_point in all_points %}
+    // markerId += 1;
+
+    marker = L.marker({{ all_point }}, {
+      icon: redIcon,
+    }).addTo(map).bindPopup(
+                    "<dl><dt>" + pole[markerCount] + "</dt>"
+                    + "<dd>Lat: " + {{ all_point[0] }} + "</dd>"
+                    + "<dd>Long: " + {{ all_point[1] }} + "</dd></dl>"
+                  );
+    marker.addTo(markers);
+
+    draggable = new L.Draggable(marker);
+    draggable.enable();
+
+    markerCount += 1;
+  {% endfor %}
+
+  // console.log(markers);
+
+  function onClick(e) {
+    // alert(this.getLatLng());
+    console.log(this.getLatLng());
+    circles = document.getElementsByTagName("g");
+    console.log(circles[circles.length - 1]);
+    circle = circles[circles.length - 1];
+    if(circles.length != all_polyLines.length){ //ak tam este kruh nie je 
+      circle.remove();
+    }
+
+    latlng = this.getLatLng()
+    L.circle([latlng.lat, latlng.lng], 
+      distance
+    ).addTo(map);
+
+    alert(this.getLatLng())
+    $.post(Flask.url_for('set_position', {position: this.getLatLng()}));
+
+
+  // var circle = L.circle([49.1830607, 19.9869453], {
+  //         color: 'red',
+  //         fillColor: '#f03',
+  //         fillOpacity: 0.5,
+  //         radius: 50.0
+  //     }).addTo(map);      
+
+  }
+
+  // function setPosition(e){
+  //   alert(this.getLatLng())
+  //   $.post(Flask.url_for('set_position', {position: this.getLatLng()}));
+  // }
+
+  // 300 radius = 650 m v skutocnosti (na mape)
+
+
+
+  // L.marker([51.5, -0.09]).addTo(map)
+  //     .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+  //     .openPopup();
+
+  // var mapTatry = L.map('mapid').setView([51.505, -0.09], 11);
+  // mapTatry.panTo([49.1830607,19.9869453]);
+  // mapTatry.createPane('labels');
+
+
+  //  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+  //     attribution: '© OpenStreetMap contributors',
+  //     pane: 'labels'
+  //   }).addTo(mymap);
+
+    // var routeControl = L.Routing.control({
+    //     waypoints: [
+    //       {% for suradnica in suradnice %}
+    //         L.latLng({{ suradnica[0] }}, {{ suradnica[1] }}),
+    //       {% endfor %}
+    //     ],
+    //     routeWhileDragging: true
+    // }).addTo(mymap);
+
+    // mymap.createPane('labels');
+    // mymap.getPane('labels').style.zIndex = 650;
+    // map.getPane('labels').style.pointerEvents = 'none';
+
+
+    // var markerId = 0
+
+    // {% for suradnica in suradnice %}
+    //   // markerId += 1;
+    //   marker = L.marker([{{ suradnica[0] }}, {{ suradnica[1] }}], {icon: greenIcon}).addTo(mymap);
+      
+    //   // marker._leaflet_id = markerId;
+    //   marker.bindPopup("hello")
+    //   marker.on('click', function(){
+    //       console.log('hej');
+    //     })
+    // {% endfor %}
+
+    // console.log(mymap)
+
+    // mymap[3].popup()
+
+    // wayPoints = routeControl.getWaypoints()
+    // var i;
+    // for (i = 0; i < wayPoints.length; i++) { 
+    //     wayPoints[i].on('click', function(){
+    //       console.log('hej');
+    //     })
+    // }
+
+
+  </script>
+
+
+
+
+
+
+
+  </body>
+</html>

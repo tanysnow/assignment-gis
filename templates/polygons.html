@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {{ JSGlue.include() }}
+    <meta charset="UTF-8">
+    <link href="{{ url_for('static', filename = 'style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'leaflet.css') }}" rel="stylesheet"/>
+
+    
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename = 'leaflet-routing-machine.css') }}"/>
+
+  <!-- <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script> -->
+    
+
+
+  </head>
+  <body>
+
+    <div class="container-fluid">
+      <div class="row">
+
+        <div class="col-md-7">
+            <form action="" id="distance-form">
+              <input type="radio" name="distance" value="none" class="radio-button"> Nezáleží
+              <input type="radio" name="distance" value="500" class="radio-button"> 500m
+              <input type="radio" name="distance" value="2000" class="radio-button"> 2km
+              <input type="radio" name="distance" value="5000" class="radio-button"> 5km
+              <input type="radio" name="distance" value="10000" class="radio-button"> 10km
+              <input type="radio" name="distance" value="other" class="radio-button"> Vlastné
+              <label><input type="text" name="own-value" placeholder="Zadajte v km (napr. 2)"/></label>
+            </form>
+          </div>
+
+          <div class="col-md-3 select-distance">
+             <form class="form-inline" method="POST" action="{{ url_for('show_best') }}">
+              <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon">Prosím vyberte</span>
+                        <select name="distance_select" class="selectpicker form-control">
+                          <option value="0" {% if select == 0 %} selected="selected"{% endif %}>Vybrať</option>
+                          <option value="5" {% if select == 5 %} selected="selected"{% endif %}>5</option>
+                          <option value="10" {% if select == 10 %} selected="selected"{% endif %}>10</option>
+                          <option value="15" {% if select == 15 %} selected="selected"{% endif %}>15</option>
+                          <option value="20" {% if select == 20 %} selected="selected"{% endif %}>20</option>
+                          <option value="all" {% if select == all %} selected="selected"{% endif %}>Všetky</option>
+                        </select>
+                </div>
+                <input type="submit" name="service" value="Zobraz najbližšie ubytovanie" class="button-yellow">
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12 select-section">
+             <form class="form-inline" method="POST" action="{{ url_for('show_distance') }}">
+              <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon">Prosím vyberte</span>
+                        <select name="comp_select" class="selectpicker form-control">
+                          {% for service in services %}
+                          <option value="{{ service }}" {% if new_service == service %} selected="selected"{% endif %}>{{ service }}</option>
+                          {% endfor %}
+                        </select>
+                </div>
+                <input type="submit" name="service" value="Selektuj" class="button">
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    <div class="row">
+      <div class="col-md-12" data-tap-disabled="true"><div id="map" width="100%" markers="markers" lf-center="center"></div></div>
+      </div>
+    </div>
+
+
+  <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+  <script src="{{ url_for('static', filename = 'leaflet.js') }}"></script>
+  <script src="{{ url_for('static', filename = 'leaflet-routing-machine.js') }}"></script>
+
+  <script>
+    var distance = 500;
+    $('#distance-form input').on('change', function() {
+      distance = $('input[name=distance]:checked', '#distance-form').val();
+      console.log(distance);
+
+      if(distance == 'none'){
+        distance = 500;
+      }
+
+      if(distance == 'other'){
+        var own_value = $('input[name=own-value]', '#distance-form').val();
+        console.log(own_value);
+
+      }
+    });
+
+  // console.log(polyLines)
+
+  var redIcon = L.icon({
+    iconUrl: '../static/marker.png',
+    // shadowUrl: 'leaf-shadow.png',
+
+    iconSize:     [32, 32], // size of the icon
+    // shadowSize:   [50, 64], // size of the shadow
+    // iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+    // shadowAnchor: [4, 62],  // the same for the shadow
+    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+});
+
+  var backPacker = L.icon({
+    iconUrl: '../static/Backpacker.png',
+    iconSize: [32, 64]
+  });
+
+  var map = L.map('map').setView([51.505, -0.09], 17);
+  map.panTo({{ actual_template }}); //49.1390668,20.2096027
+
+  L.marker({{ actual_template }}, {
+      icon: backPacker,
+      draggable: true,
+    }).addTo(map).on('click', setPosition);
+
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  var markerCount = 0;
+  var markers = L.layerGroup([]);
+  var draggable = new L.Draggable();
+
+  var all_polygones = {{ all_polygones }}
+  var pole = {{ names | safe }}
+
+  for(var j = 0; j < all_polygones.length; j++){
+    L.polygon(all_polygones[j], {color: '#ffff00'}).addTo(map).bindPopup(
+                    "<dl><dt>" + pole[j] + "</dt>"
+                  );
+  }
+
+  function setPosition(e){
+    alert(this.getLatLng())
+    $.post(Flask.url_for('set_position', {position: this.getLatLng()}));
+  }
+
+
+  </script>
+
+
+
+
+
+
+
+  </body>
+</html>

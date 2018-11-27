@@ -1,0 +1,47 @@
+body {
+  /*background-color: blue;*/
+  padding-top: 20px;
+}
+
+#the-string {
+  display: none;
+}
+
+#map { height: 580px; }
+
+.header{
+	height: 150px;
+	width: 100%;
+	background-color: #ffff99;
+}
+
+.col-md-9{
+	margin: 0;
+	padding: 0;
+}
+
+.button{
+	padding: 5px 15px;
+	background-color: transparent;
+	border: 1px solid grey;
+}
+
+.button-yellow{
+	padding: 5px 15px;
+	border: 1px solid grey;
+	background-color: yellow;
+}
+
+.radio-button{
+	margin-left: 30px;
+}
+
+.select-section{
+	margin-left: 45px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.input-group-addon{
+	margin-right: 15px;
+}
