@@ -5,6 +5,7 @@ Aplikácia ponúka zobrazenie rôznych artefaktov na mape v oblasti Vysokých Ta
 - nasimulovanie aktuálnej pozície
 - zobrazenie top najbližšieho ubytovania podľa určeného limitu a aktuálnej pozície
 - zobrazenie cyklotrás spolu s bodmi, ktoré tieto cesty pretínajú
+- zobrazenie plôch s artefaktami, ktoré sa tam nachádzajú 
 
 Takto vyzerá aplikácia v chode:
 
