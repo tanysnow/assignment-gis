@@ -13,6 +13,17 @@
 
   <link rel="stylesheet" href="{{ url_for('static', filename = 'leaflet-routing-machine.css') }}"/>
 
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
+
+  <style>
+  	.leaflet-tile{
+  		filter: grayscale(100%);
+  		/*-webkit-filter: saturate(17);*/
+  		/*filter: saturate(17);*/
+  	}
+  </style>
+
   <!-- <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script> -->
     
 
@@ -105,7 +116,26 @@
     iconSize: [32, 64]
   });
 
-  var map = L.map('map').setView([51.505, -0.09], 11);
+  mapboxUrl = 'https://api.mapbox.com/styles/v1/tanysnow/cjp12m1gy0syy2sp6ri9o4qeq.html?fresh=true&title=true&access_token=pk.eyJ1IjoidGFueXNub3ciLCJhIjoiY2pwMTJjaTJlMDc5cTNxcWdlOXBnYWE1diJ9.8ddPw1RSivFp8T898YBYTg#13.6/37.784020/-122.403944/0';
+  var grayscale = L.tileLayer(mapboxUrl, 
+    {id: 'pk.eyJ1IjoidGFueXNub3ciLCJhIjoiY2pwMTJjaTJlMDc5cTNxcWdlOXBnYWE1diJ9.8ddPw1RSivFp8T898YBYTg', 
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'})
+
+  var map = L.map('map', {
+    center: [51.505, -0.09],
+    zoom: 11,
+	style: 'mapbox://styles/tanysnow/cjp333h0d0o822soajrlh38lf'});
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  L.tileLayer(mapboxUrl, 
+    {id: 'pk.eyJ1IjoidGFueXNub3ciLCJhIjoiY2pwMTJjaTJlMDc5cTNxcWdlOXBnYWE1diJ9.8ddPw1RSivFp8T898YBYTg', 
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+
+
+
   map.panTo([49.1830607,19.9869453]); //49.1390668,20.2096027
 
   // L.marker([49.1646923996516, 20.2791366], {
@@ -135,10 +165,6 @@
   // zoom the map to the polyline
   // map.fitBounds(polyline.getBounds());
 
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
 
   var markerCount = 0;
   var markers = L.layerGroup([]);
