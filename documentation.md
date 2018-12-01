@@ -83,8 +83,9 @@ CREATE INDEX planet_osm_line_bicycle ON planet_osm_line USING gist (bicycle)
 #API
 
 zobrazenie väčších plôch s kultúrnymi atrakciami, ktoré sa tam nachádzajú
+```
 GET http://127.0.0.1:5000/searchRoads
-
+```
 response
 
 ```json
