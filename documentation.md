@@ -1,19 +1,19 @@
 SLESARIKOVA TATIANA
-# Overview
+# Úvod
 Aplikácia ponúka zobrazenie rôznych artefaktov na mape v oblasti Vysokých Tatier. Najdôležitejšie features sú:
 - zobrazenie vybratých miest (požičovňa lyží, bary, lekárne, ...) vzhľadom na aktuálnu pozíciu
 - vybratie si rozsahu hľadania miest na základe počtu m a km od aktuálnej pozície
 - nasimulovanie aktuálnej pozície
-- zobrazenie top najbližšieho ubytovania podľa určeného limitu a aktuálnej pozície
+- zobrazenie top najbližšieho ubytovania podľa určeného limitu zobrazených ubytovaní a aktuálnej pozície
 - zobrazenie cyklotrás spolu s bodmi, ktoré tieto cesty pretínajú
-- zobrazenie plôch s artefaktami, ktoré sa tam nachádzajú 
+- zobrazenie väčších plôch s kultúrnymi atrakciami, ktoré sa tam nachádzajú 
 
 Takto vyzerá aplikácia v chode:
 
 ![Screenshot](screenshot.png)
 ![Screenshot](screen.png)
-![Screenshot](screen1.png)
 ![Screenshot](screen2.png)
+![Screenshot](screen1.png)
 ![Screenshot](screen3.png)
 
 Aplikácia je rozdelená na 2 časti - frontend, ktorý využíva Leaflet na zobrazovanie mapy a backend, ktorý je napísaný v Pythone spolu s frameworkom Flask. 
@@ -27,4 +27,13 @@ Backendová časť aplikácie je napísaná v jazyku Python v spolupráci s fram
 
 ## Dáta
 
-Dáta sú stiahnuté priamo z Open Street Maps. Stiahnutá je časť Vysokých Tatier ako na Slovensku tak aj v Poľsku a importovaná je pomocou 'osm2pgsql' a návodu na githube. Pre zrýchlenie dopytov som vytvorila indexy - way (v tabuľke planet_osm_line a planet_osm_point), bicycle (tabuľka planet_osm_point) a amenity (tabuľka planet_osm_point). Všetky dopyty sú tvorené pomocou psycpg.cursor("dopyt"). 
+Dáta sú stiahnuté priamo z Open Street Maps. Stiahnutá je časť Vysokých Tatier ako na Slovensku tak aj v Poľsku a importovaná je pomocou 'osm2pgsql' a návodu na githube. Pre zrýchlenie dopytov som vytvorila indexy - way (v tabuľke planet_osm_line a planet_osm_point), bicycle (tabuľka planet_osm_point) a amenity (tabuľka planet_osm_point). Všetky dopyty sú tvorené pomocou psycpg.cursor("dopyt").
+
+##Query
+1. scenár - zobrazenie vybratých miest (požičovňa lyží, bary, lekárne, ...) vzhľadom na aktuálnu pozíciu
+```postgres
+SELECT points.name, lines.name, ST_Intersects(ST_Transform(points.way, 4326), ST_Transform(lines.way, 4326)), 
+ST_AsText(ST_Transform(points.way, 4326)), ST_AsText(ST_Transform(lines.way, 4326)) FROM planet_osm_line 
+as lines INNER JOIN planet_osm_point AS points ON (lines.bicycle = points.bicycle)
+WHERE lines.bicycle='yes' and ST_Intersects(ST_Transform(points.way, 4326), ST_Transform(lines.way, 4326))='true'
+```
