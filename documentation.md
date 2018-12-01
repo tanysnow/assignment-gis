@@ -71,6 +71,7 @@ WHERE ST_Contains(polygon.way, points.way)='true'
 
 ##Indexy
 Na základe dopytov a dĺžky trvania vyhodnotenia som vytvorila takéto indexy:
+
 ```postgres
 CREATE INDEX planet_osm_point_way ON planet_osm_point USING gist (way)
 CREATE INDEX planet_osm_point_amenity ON planet_osm_point USING gist (amenity)
@@ -78,7 +79,14 @@ CREATE INDEX planet_osm_point_amenity ON planet_osm_point USING gist (amenity)
 CREATE INDEX planet_osm_line_way ON planet_osm_line USING gist (way)
 CREATE INDEX planet_osm_line_bicycle ON planet_osm_line USING gist (bicycle)
 ```
+
 #API
+
+zobrazenie väčších plôch s kultúrnymi atrakciami, ktoré sa tam nachádzajú
+GET http://127.0.0.1:5000/searchRoads
+
+response
+
 ```json
 ["contains", [
 	[
