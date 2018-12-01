@@ -5,8 +5,11 @@ import re
 from flask_jsglue import JSGlue
 import psycopg2
 from psycopg2 import sql
+from flask_api import FlaskAPI
+import json
 
 app = Flask(__name__)
+app = FlaskAPI(__name__)
 jsglue = JSGlue(app)
 conn = psycopg2.connect(host="localhost",database="frio1", user="frio1", password="amanda")
 
@@ -445,6 +448,135 @@ def show_contains():
 	return render_template('polygons.html', services=services, service='parking', new_service='parking', 
 											all_polygones=all_polygones, names=names, actual_position=actual_position_array,
 											actual_template=actual_template, select=select, suradnice=suradnice)
+
+
+@app.route("/searchRoads", methods=['GET', 'POST'])
+def search_roads():
+
+	cur = conn.cursor()
+	cur.execute('SELECT version()')
+	cur.execute("SELECT points.name, ST_AsGeoJson(points.way), lines.name, ST_AsGeoJson(lines.way), ST_Intersects(ST_Transform(points.way, 4326), " + 
+		"ST_Transform(lines.way, 4326)) FROM planet_osm_line " + 
+		"as lines INNER JOIN planet_osm_point AS points ON (lines.bicycle = points.bicycle) " + 
+		"WHERE lines.bicycle='yes' and points.name!='null' and ST_Intersects(ST_Transform(points.way, 4326), ST_Transform(lines.way, 4326))='true'")
+
+	points = []
+	for row in iter_row(cur, 10):
+		point = []
+		temp = ''
+		temp1 = ''
+		if(row[2] is None):
+			temp = 'nothing'
+		else:
+			temp = row[2].decode('utf8')
+		if(row[0] is None):
+			temp1 = 'nothing'
+		else:
+			temp1 = row[0].decode('utf8')
+
+		point.append(temp1)
+		point.append(row[1])
+		point.append(temp)
+		point.append(row[3])
+		point.append(str(row[4]))
+
+		points.append(point)
+
+		services = json.dumps(['contains', points])
+		
+	return services
+
+@app.route("/searchAtraction", methods=['GET', 'POST'])
+def search_atraction():
+
+	cur = conn.cursor()
+	cur.execute('SELECT version()')
+	cur.execute("SELECT polygon.name, ST_AsGeoJson(polygon.way), points.name, ST_AsGeoJson(points.way), " + 
+	"ST_Contains(polygon.way, points.way) " + 
+	"FROM planet_osm_polygon AS polygon INNER JOIN planet_osm_point AS points ON (polygon.amenity = points.amenity) " + 
+	"WHERE ST_Contains(polygon.way, points.way)='true'")
+
+	points = []
+	for row in iter_row(cur, 10):
+		point = []
+		temp = ''
+		temp1 = ''
+		if(row[2] is None):
+			temp = 'nothing'
+		else:
+			temp = row[2].decode('utf8')
+		if(row[0] is None):
+			temp1 = 'nothing'
+		else:
+			temp1 = row[0].decode('utf8')
+
+		point.append(temp1)
+		point.append(row[1])
+		point.append(temp)
+		point.append(row[3])
+		point.append(str(row[4]))
+
+		points.append(point)
+
+		services = json.dumps(['contains', points])
+		
+	return services
+
+@app.route("/searchTopAccommodation/<limit>", methods=['GET', 'POST'])
+def search_accommodation(limit):
+
+	cur = conn.cursor()
+	cur.execute('SELECT version()')
+	cur.execute("SELECT polygons.coordinaty, polygons.cesta, polygons.name FROM ( SELECT ST_AsGeoJson(way) AS coordinaty, name, tourism, " + 
+		"ST_Distance_Sphere(ST_setSRID(ST_MakePoint(20.2096027, 49.1390668), 4326), " + 
+		"ST_Transform(ST_Centroid(way), 4326))  AS cesta FROM planet_osm_polygon WHERE tourism!='null') AS polygons ORDER BY polygons.cesta LIMIT %s", [int(limit)])
+
+	points = []
+	for row in iter_row(cur, 10):
+		point = []
+		temp = ''
+		if(row[2] is None):
+			temp = 'nothing'
+		else:
+			temp = row[2].decode('utf8')
+
+		point.append(row[0])
+		point.append(row[1])
+		point.append(temp)
+
+		points.append(point)
+
+		services = json.dumps(['contains', points])
+		
+	return services
+
+@app.route("/searchForAmenity/<name>", methods=['GET', 'POST'])
+def search_amenity(name):
+
+	cur = conn.cursor()
+	cur.execute('SELECT version()')
+	cur.execute("SELECT body.name, ST_AsGeoJson(body.cesta) FROM( SELECT name, ST_Transform (way, 4326) as cesta FROM planet_osm_point WHERE amenity=%s)  as body " + 
+		"WHERE ST_Distance_Sphere(ST_setSRID(ST_MakePoint(20.2096027, 49.1390668), 4326), body.cesta) < 10000", [name])
+	print(name)
+
+	points = []
+	for row in iter_row(cur, 10):
+		point = []
+		temp = ''
+		if(row[0] is None):
+			temp = 'nothing'
+		else:
+			temp = row[0].decode('utf8')
+
+
+		point.append(temp)
+		point.append(row[1])
+
+		points.append(point)
+
+		services = json.dumps(['contains', points])
+		
+	return services
 
 
 if __name__ == '__main__':
